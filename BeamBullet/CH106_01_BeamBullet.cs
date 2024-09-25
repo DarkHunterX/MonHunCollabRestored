@@ -1,4 +1,5 @@
-﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MonHunCollabRestored.Character;
@@ -9,17 +10,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tangerine.Patchers.LogicUpdate;
-using Tangerine.Utils;
 using UnityEngine;
 
-namespace MonHunCollabRestored.BeambulletEx
+namespace MonHunCollabRestored.Beambullet
 {
-    public class ValstraxLaser_BeamBullet : BeamBullet, ITangerineLogicUpdate
+    public class CH106_01_BeamBullet : BeamBullet, ITangerineLogicUpdate
     {
         #region Basic Setup (Il2Cpp)
-        public ValstraxLaser_BeamBullet(IntPtr ptr) : base(ptr) { }
+        public CH106_01_BeamBullet(IntPtr ptr) : base(ptr) { }
 
-        public ValstraxLaser_BeamBullet() : base(ClassInjector.DerivedConstructorPointer<ValstraxLaser_BeamBullet>())
+        public CH106_01_BeamBullet() : base(ClassInjector.DerivedConstructorPointer<CH106_01_BeamBullet>())
         {
             ClassInjector.DerivedConstructorBody(this);
         }
@@ -48,46 +48,54 @@ namespace MonHunCollabRestored.BeambulletEx
         }
         #endregion
 
-        public override Il2CppSystem.Collections.IEnumerator OnStartMove()
+        public void Setup(BeamBullet _bullet)
         {
-            return CH106_BeamBullet_StartMove().WrapToIl2Cpp();
+            _beamBullet = _bullet;
+            if (_beamBullet.CoroutineMove != null)
+            {
+                _beamBullet.StopCoroutine(_beamBullet.CoroutineMove);
+            }
+
+            GetBulletInfo();
+            _beamBullet.CoroutineMove = _beamBullet.StartCoroutine(CH106_BeamBullet_StartMove());
+            
         }
 
         public IEnumerator CH106_BeamBullet_StartMove()
         {
-            this.IsActivate = true;
-            this._hitCollider.enabled = true;
+            _beamBullet.IsActivate = true;
+            _beamBullet._hitCollider.enabled = true;
             TangerineLogicUpdateManager.AddUpdate(this);
-            this._clearTimer.TimerReset();
-            this._clearTimer.TimerStart();
-            this._durationTimer.TimerReset();
-            this._durationTimer.TimerStart();
+            _beamBullet._clearTimer.TimerReset();
+            _beamBullet._clearTimer.TimerStart();
+            _beamBullet._durationTimer.TimerReset();
+            _beamBullet._durationTimer.TimerStart();
 
-            if (this.refPBMShoter.SOB != null)
+            if (_beamBullet.refPBMShoter.SOB != null)
             {
-                _pOwner = this.refPBMShoter.SOB.GetComponent<CH106_Controller>();
+                _pOwner = _beamBullet.refPBMShoter.SOB.GetComponent<CH106_Controller>();
             }
 
-            while (!this.IsDestroy)
+            while (!_beamBullet.IsDestroy)
             {
-                if (this._clearTimer.GetMillisecond() >= this._hurtCycle)
+                if (_beamBullet._clearTimer.GetMillisecond() >= _beamBullet._hurtCycle)
                 {
-                    this._clearTimer.TimerStart();
-                    this._ignoreList.Clear();
-                    this._rigidbody2D.WakeUp();
+                    _beamBullet._clearTimer.TimerStart();
+                    _beamBullet._ignoreList.Clear();
+                    _beamBullet._rigidbody2D.WakeUp();
                 }
 
-                if (!bStartTurn && this.isSubBullet)
+                if (!bStartTurn && _beamBullet.isSubBullet)
                     DirectonTurn();
-
-                if (this._duration != -1L && this._durationTimer.GetMillisecond() >= this._duration && !bGamePause)
+                               
+                if (_beamBullet._duration != -1L && _beamBullet._durationTimer.GetMillisecond() >= _beamBullet._duration && !bGamePause)
                 {
-                    this.IsDestroy = true;
-                    if (this.isSubBullet == false)
+                    _beamBullet.IsDestroy = true;
+                    if(_beamBullet.isSubBullet == false)
                     {
                         bool flag = true;
                         flag = _pOwner != null ? _pOwner.BeamStartTurn() : false;
-
+                        
                         if (flag == true)
                             CreateSubBeam();
                     }
@@ -105,7 +113,7 @@ namespace MonHunCollabRestored.BeambulletEx
                     //        if (ch106_BeamBullet)
                     //        {
                     //            Plugin.Log.LogInfo("Sub Beam Rotated");
-                    //            ch106this.DirectonTurn();
+                    //            ch106_BeamBullet.DirectonTurn();
                     //        }
                     //    }
                     //}
@@ -115,42 +123,38 @@ namespace MonHunCollabRestored.BeambulletEx
                     //}
                 }
 
-                if (this.AlwaysFaceCamera)
+                if (_beamBullet.AlwaysFaceCamera)
                 {
-                    this.transform.LookAt(this._mainCamera.transform.position, -Vector3.up);
+                    _beamBullet.transform.LookAt(_beamBullet._mainCamera.transform.position, -Vector3.up);
                 }
                 yield return CoroutineDefine._waitForEndOfFrame;
             }
-            this.BackToPool();
+            this.BackToPoolLaser();
+            _beamBullet.BackToPool();
             yield return null;
             yield break;
         }
 
-        public override void Update_Effect()
-        {
-            UpdateEffect();
-        }
-
         public void UpdateEffect()
         {
-            this.bIsEnd = false;
+            _beamBullet.bIsEnd = false;
             if (!bInit)
             {
                 bInit = true;
-                float num = this._hitCollider.Cast<BoxCollider2D>().size.x - defLength;
-                this.fxEndpoint.localPosition = this.fxEndpoint.localPosition + new Vector3(0f, 0f, num);
+                float num = _beamBullet._hitCollider.Cast<BoxCollider2D>().size.x - defLength;
+                _beamBullet.fxEndpoint.localPosition = _beamBullet.fxEndpoint.localPosition + new Vector3(0f, 0f, num);
                 fxLine01.SetPosition(0, new Vector3(fxLine01.GetPosition(0).x - num, 0f, fxLine01.GetPosition(0).z));
                 fxLine01A.SetPosition(0, new Vector3(fxLine01A.GetPosition(0).x - num, 0f, fxLine01A.GetPosition(0).z));
                 fxLine02.SetPosition(0, new Vector3(fxLine02.GetPosition(0).x - num, 0f, fxLine02.GetPosition(0).z));
                 fxLine02A.SetPosition(0, new Vector3(fxLine02A.GetPosition(0).x - num, 0f, fxLine02A.GetPosition(0).z));
                 fxLightning00.SetPosition(0, new Vector3(fxLightning00.GetPosition(0).x - num, 0f, fxLightning00.GetPosition(0).z));
                 fxLightning00_Black.SetPosition(0, new Vector3(fxLightning00_Black.GetPosition(0).x - num, 0f, fxLightning00_Black.GetPosition(0).z));
-                SetLightning(ref fxLightning, num);
-                SetSS1(ref fxSs1, num);
-                SetSS1(ref fxLL001, num);
-                SetSS1(ref fxLL002, num);
-                SetSS1(ref fxLL001A, num);
-                SetSS1(ref fxLL002A, num);
+                SetLightning(fxLightning, num);
+                SetSS1(fxSs1, 5.0f, 5.0f,num);
+                SetSS1(fxLL001, 5.0f, 4.0f, num);
+                SetSS1(fxLL002, 5.0f, 4.0f, num);
+                SetSS1(fxLL001A, 5.0f, 4.0f, num);
+                SetSS1(fxLL002A, 5.0f, 4.0f, num);
             }
         }
 
@@ -159,40 +163,41 @@ namespace MonHunCollabRestored.BeambulletEx
             BulletPause(pause);
         }
 
-        private static void SetLightning(ref ParticleSystem ps, float difLength)
+        private void SetLightning(ParticleSystem ps, float difLength)
         {
             ParticleSystem.MainModule main = ps.main;
             ParticleSystem.MinMaxCurve startSizeY = main.startSizeY;
-            startSizeY.constantMin = (main.startSizeY.constantMin + difLength) * 0.75f;
-            startSizeY.constantMax = (main.startSizeY.constantMax + difLength) * 0.75f;
+            startSizeY.constantMin = (0.6f + difLength) * 0.75f;
+            startSizeY.constantMax = (0.6f + difLength) * 0.75f;
             main.startSizeY = startSizeY;
+            
         }
 
-        private static void SetSS1(ref ParticleSystem ps, float difLength)
+        private void SetSS1(ParticleSystem ps, float min, float max, float difLength)
         {
             ParticleSystem.MainModule main = ps.main;
             ParticleSystem.MinMaxCurve startSizeX = main.startSizeX;
-            startSizeX.constantMin = main.startSizeX.constantMin + difLength * 0.5f;
-            startSizeX.constantMax = main.startSizeX.constantMax + difLength * 0.5f;
+            startSizeX.constantMin = min + (difLength * 0.5f);
+            startSizeX.constantMax = max + (difLength * 0.5f);
             main.startSizeX = startSizeX;
         }
 
         public void DirectonTurn()
         {
             ActiveExtraCollider();
-            _fStartAngle = this.transform.localEulerAngles.z;
-            if (this.transform.localEulerAngles.z == 270f)
+            _fStartAngle = _beamBullet.transform.localEulerAngles.z;
+            if (_beamBullet.transform.localEulerAngles.z == 270f)
             {
-                if (this.refPBMShoter.SOB != null && this.refPBMShoter.SOB.direction == 1)
+                if (_beamBullet.refPBMShoter.SOB != null && _beamBullet.refPBMShoter.SOB.direction == 1)
                 {
-                    _fStartAngle = this.transform.localEulerAngles.z - 360f;
+                    _fStartAngle = _beamBullet.transform.localEulerAngles.z - 360f;
                 }
             }
-            else if (this.transform.localEulerAngles.z > 270f)
+            else if (_beamBullet.transform.localEulerAngles.z > 270f)
             {
-                _fStartAngle = this.transform.localEulerAngles.z - 360f;
+                _fStartAngle = _beamBullet.transform.localEulerAngles.z - 360f;
             }
-            if (this.transform.localEulerAngles.z < 90f || this.transform.localEulerAngles.z > 270f)
+            if (_beamBullet.transform.localEulerAngles.z < 90f || _beamBullet.transform.localEulerAngles.z > 270f)
             {
                 nShootDirection = 1;
             }
@@ -201,10 +206,10 @@ namespace MonHunCollabRestored.BeambulletEx
                 nShootDirection = -1;
             }
             bStartTurn = true;
-            oldAngle = this.transform.localEulerAngles.z;
-            LeanTween.value(this.transform.gameObject, _fStartAngle, 90f, (float)(this._duration - 50L) * 0.001f).setOnUpdate(new System.Action<float>((float val) =>
+            oldAngle = _beamBullet.transform.localEulerAngles.z;
+            LeanTween.value(_beamBullet.transform.gameObject, _fStartAngle, 90f, (float)(_beamBullet._duration - 50L) * 0.001f).setOnUpdate(new System.Action<float>((float val) =>
             {
-                this.transform.localEulerAngles = new Vector3(0f, 0f, val);
+                _beamBullet.transform.localEulerAngles = new Vector3(0f, 0f, val);
             })).setEaseInQuart();
         }
 
@@ -212,23 +217,23 @@ namespace MonHunCollabRestored.BeambulletEx
         {
             if (this.secortCollider == null)
                 return;
-
-            BoxCollider2D boxCollider2D = this._hitCollider.Cast<BoxCollider2D>();
-            if (boxCollider2D == null)
-                return;
-
+            
+                BoxCollider2D boxCollider2D = this._hitCollider.Cast<BoxCollider2D>();
+                if (boxCollider2D == null)
+                    return;
+                
             this.secortCollider.Active(this, boxCollider2D.size.x);
         }
 
         public void CreateSubBeam()
         {
-            int n_LINK_SKILL = this.BulletData.n_LINK_SKILL;
+            int n_LINK_SKILL = _beamBullet.BulletData.n_LINK_SKILL;
             if (n_LINK_SKILL == 0)
                 return;
             SKILL_TABLE skill_TABLE = ManagedSingleton<OrangeDataManager>.Instance.SKILL_TABLE_DICT[n_LINK_SKILL].GetSkillTableByValue();
-            if (this.refPBMShoter.SOB.Cast<OrangeCharacter>() != null)
+            if (_beamBullet.refPBMShoter.SOB.Cast<OrangeCharacter>() != null)
             {
-                (this.refPBMShoter.SOB.Cast<OrangeCharacter>()).tRefPassiveskill.ReCalcuSkill(ref skill_TABLE);
+                (_beamBullet.refPBMShoter.SOB.Cast<OrangeCharacter>()).tRefPassiveskill.ReCalcuSkill(ref skill_TABLE);
             }
 
             BeamBullet ch106_BeamBullet = null;
@@ -242,32 +247,32 @@ namespace MonHunCollabRestored.BeambulletEx
                 return;
             }
             WeaponStatus weaponStatus = new WeaponStatus();
-            weaponStatus.nHP = this.nHp;
-            weaponStatus.nATK = this.nOriginalATK;
-            weaponStatus.nCRI = this.nOriginalCRI;
-            weaponStatus.nHIT = this.nHit - this.refPSShoter.GetAddStatus(8, this.nWeaponCheck);
-            weaponStatus.nCriDmgPercent = this.nCriDmgPercent;
-            weaponStatus.nReduceBlockPercent = this.nReduceBlockPercent;
-            weaponStatus.nWeaponCheck = this.nWeaponCheck;
-            weaponStatus.nWeaponType = this.nWeaponType;
+            weaponStatus.nHP = _beamBullet.nHp;
+            weaponStatus.nATK = _beamBullet.nOriginalATK;
+            weaponStatus.nCRI = _beamBullet.nOriginalCRI;
+            weaponStatus.nHIT = _beamBullet.nHit - _beamBullet.refPSShoter.GetAddStatus(8, _beamBullet.nWeaponCheck);
+            weaponStatus.nCriDmgPercent = _beamBullet.nCriDmgPercent;
+            weaponStatus.nReduceBlockPercent = _beamBullet.nReduceBlockPercent;
+            weaponStatus.nWeaponCheck = _beamBullet.nWeaponCheck;
+            weaponStatus.nWeaponType = _beamBullet.nWeaponType;
             PerBuffManager.BuffStatus buffStatus = new PerBuffManager.BuffStatus();
-            buffStatus.fAtkDmgPercent = this.fDmgFactor - 100f;
-            buffStatus.fCriPercent = this.fCriFactor - 100f;
-            buffStatus.fCriDmgPercent = this.fCriDmgFactor - 100f;
-            buffStatus.fMissPercent = this.fMissFactor;
-            buffStatus.refPBM = this.refPBMShoter;
-            buffStatus.refPS = this.refPSShoter;
-            ch106_BeamBullet.UpdateBulletData(skill_TABLE, this.Owner, 0, 0, 1);
+            buffStatus.fAtkDmgPercent = _beamBullet.fDmgFactor - 100f;
+            buffStatus.fCriPercent = _beamBullet.fCriFactor - 100f;
+            buffStatus.fCriDmgPercent = _beamBullet.fCriDmgFactor - 100f;
+            buffStatus.fMissPercent = _beamBullet.fMissFactor;
+            buffStatus.refPBM = _beamBullet.refPBMShoter;
+            buffStatus.refPS = _beamBullet.refPSShoter;
+            ch106_BeamBullet.UpdateBulletData(skill_TABLE, _beamBullet.Owner, 0, 0, 1);
             ch106_BeamBullet.SetBulletAtk(weaponStatus, buffStatus, null);
-            ch106_BeamBullet.BulletLevel = this.BulletLevel;
+            ch106_BeamBullet.BulletLevel = _beamBullet.BulletLevel;
             ch106_BeamBullet.isSubBullet = true;
-            ch106_BeamBullet.transform.SetPositionAndRotation(this._transform.position, Quaternion.identity);
-            ch106_BeamBullet.Active(this._transform.position, this.Direction, this.TargetMask, null);
+            ch106_BeamBullet.transform.SetPositionAndRotation(_beamBullet._transform.position, Quaternion.identity);
+            ch106_BeamBullet.Active(_beamBullet._transform.position, _beamBullet.Direction, _beamBullet.TargetMask, null);
         }
 
         public void GetBulletInfo()
         {
-            Il2CppReferenceArray<Transform> componentsInChildren = this._transform.GetComponentsInChildren<Transform>(true).Cast<Il2CppReferenceArray<Transform>>();
+            Il2CppReferenceArray<Transform> componentsInChildren = _beamBullet._transform.GetComponentsInChildren<Transform>(true).Cast<Il2CppReferenceArray<Transform>>();
             foreach (Transform component in componentsInChildren)
             {
                 switch (component.name)
@@ -319,24 +324,26 @@ namespace MonHunCollabRestored.BeambulletEx
             bGamePause = pause;
             if (bGamePause)
             {
-                this._clearTimer.TimerPause();
-                this._durationTimer.TimerPause();
+                _beamBullet._clearTimer.TimerPause();
+                _beamBullet._durationTimer.TimerPause();
                 return;
             }
-            this._clearTimer.TimerResume();
-            this._durationTimer.TimerResume();
+            _beamBullet._clearTimer.TimerResume();
+            _beamBullet._durationTimer.TimerResume();
         }
 
-        public override void BackToPool()
+        public void BackToPoolLaser()
         {
-            if (!this.isSubBullet && _pOwner != null)
+            if (!_beamBullet.isSubBullet && _pOwner != null)
             {
                 _pOwner.BeamStartTurn();
             }
+
             _pOwner = null;
             bStartTurn = false;
             bInit = false;
             TangerineLogicUpdateManager.RemoveUpdate(this);
+
 
             fxLine01 = null;
             fxLine01A = null;
@@ -350,10 +357,9 @@ namespace MonHunCollabRestored.BeambulletEx
             fxLL002A = null;
             fxLightning00 = null;
             fxLightning00_Black = null;
-            this.CallBase<BeamBullet>("BackToPool");
         }
 
-        //public BeamBullet _beamBullet;
+        public BeamBullet _beamBullet;
 
         protected float defLength = 8f;
         private LineRenderer fxLine01;
@@ -374,7 +380,7 @@ namespace MonHunCollabRestored.BeambulletEx
         private bool bStartTurn = false;
         private float oldAngle = 0f;
         protected int nShootDirection = 1;
-        private bool bInit = false;
+        public bool bInit = false;
         private bool bGamePause = false;
         protected CH106_Controller _pOwner;
     }

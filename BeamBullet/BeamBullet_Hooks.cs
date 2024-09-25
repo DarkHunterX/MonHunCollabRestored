@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using Tangerine.Patchers.LogicUpdate;
 
-namespace MonHunCollabRestored.BeambulletEx
+namespace MonHunCollabRestored.Beambullet
 {
     public class BeamBullet_Hooks
     {
@@ -127,7 +127,6 @@ namespace MonHunCollabRestored.BeambulletEx
         private static void OrangeConstInitPostfix()
         {
             RegisterClass(typeof(CH106_01_BeamBullet));
-            //RegisterClass(typeof(ValstraxLaser_BeamBullet)); //Just Testing
         }
         #endregion
     }

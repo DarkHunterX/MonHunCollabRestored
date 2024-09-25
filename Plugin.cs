@@ -2,7 +2,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using MonHunCollabRestored.Character;
-using MonHunCollabRestored.BeambulletEx;
+using MonHunCollabRestored.Beambullet;
 using Tangerine.Manager.Mod;
 
 namespace MonHunCollabRestored;
