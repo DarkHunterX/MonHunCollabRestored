@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Tangerine.Patchers.LogicUpdate;
 using UnityEngine;
 
-namespace MonHunCollabRestored
+namespace MonHunCollabRestored.Beambullet
 {
     public class ValstraLaser_BeamBullet : MonoBehaviour, ITangerineLogicUpdate
     {
