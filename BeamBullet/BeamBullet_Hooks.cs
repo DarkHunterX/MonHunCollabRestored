@@ -9,7 +9,7 @@ namespace MonHunCollabRestored.Beambullet
 {
     public class BeamBullet_Hooks
     {
-        public static List<Il2CppSystem.Object> lstBullet = new List<Il2CppSystem.Object>();
+        public static Dictionary<string, Il2CppSystem.Object> lstBullet = new Dictionary<string, Il2CppSystem.Object>();
         private static bool bNeedClean = false;
 
         internal static void InitializeHarmony(Harmony harmony)
@@ -17,8 +17,7 @@ namespace MonHunCollabRestored.Beambullet
             harmony.PatchAll(typeof(BeamBullet_Hooks));
         }
 
-        [HarmonyPatch(typeof(OrangeSceneManager), nameof(OrangeSceneManager.ChangeSceneComplete))]
-        [HarmonyPostfix]
+        [HarmonyPostfix, HarmonyPatch(typeof(OrangeSceneManager), nameof(OrangeSceneManager.ChangeSceneComplete))]
         static void fw_OrangeSceneManager_ChangeScene(OrangeSceneManager __instance)
         {
             lstBullet.Clear();
@@ -26,107 +25,87 @@ namespace MonHunCollabRestored.Beambullet
 
 
         #region CH106_BeamBullet Simulation
-        [HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.OnStartMove))]
-        [HarmonyPrefix]
+        [HarmonyPrefix, HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.OnStartMove))]
         private static void fw_BeamBullet_OnStartMove(BeamBullet __instance, ref Il2CppSystem.Collections.IEnumerator __result)
         {
             //Only switch if this 2 bullet
             if (__instance.BulletData.s_MODEL == "p_valstraxlaser_000" || __instance.BulletData.s_MODEL == "p_valstraxlaser_000_01")
             {
-                CH106_01_BeamBullet bullet = GetBulletFromList(__instance);
-                if (!bullet.IsActivate)
+                if (!lstBullet.ContainsKey(__instance.BulletData.s_MODEL))
                 {
-                    var bullet2 = new CH106_01_BeamBullet();
+                    var bullet2 = new ValstraLaser_BeamBullet();
                     bullet2.Setup(__instance);
-                    bullet2.BulletData = __instance.BulletData;
-                    lstBullet.Add(bullet2);
+                    lstBullet.Add(__instance.BulletData.s_MODEL, bullet2);
                 }
                 __result = null;
             }
         }
 
-        [HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.Update_Effect))]
-        [HarmonyPrefix]
+        [HarmonyPrefix, HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.Update_Effect))]
         public static void BeamBullet_UpdateEffect(BeamBullet __instance)
         {
             if (__instance.BulletData.s_MODEL == "p_valstraxlaser_000" || __instance.BulletData.s_MODEL == "p_valstraxlaser_000_01")
             {
-                CH106_01_BeamBullet bullet = GetBulletFromList(__instance);
-                if (!bullet.IsActivate)
+                ValstraLaser_BeamBullet bullet;
+                Il2CppSystem.Object temp;
+                if (!lstBullet.TryGetValue(__instance.BulletData.s_MODEL, out temp))
                 {
-                    var bullet2 = new CH106_01_BeamBullet();
+                    var bullet2 = new ValstraLaser_BeamBullet();
                     bullet2.Setup(__instance);
-                    bullet2.BulletData = __instance.BulletData;
-                    lstBullet.Add(bullet2);
+                    lstBullet.Add(__instance.BulletData.s_MODEL, bullet2);
                     bullet = bullet2;
+                }
+                else
+                {
+                    bullet = temp.Cast<ValstraLaser_BeamBullet>();
                 }
 
                 bullet.UpdateEffect();
             }
         }
 
-        [HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.BackToPool))]
-        [HarmonyPrefix]
+        [HarmonyPrefix, HarmonyPatch(typeof(BeamBullet), nameof(BeamBullet.BackToPool))]
         private static void fw_BeamBullet_BackToPool(BeamBullet __instance)
         {
-            CH106_01_BeamBullet bullet = GetBulletFromList(__instance);
-            if (bullet.BulletData == null)
+            Il2CppSystem.Object temp;
+            if (lstBullet.TryGetValue(__instance.BulletData.s_MODEL, out temp))
             {
-                return;
+                lstBullet.Remove(__instance.BulletData.s_MODEL);
             }
-
-            if (bullet.BulletData.s_MODEL.Equals(__instance.BulletData.s_MODEL))
-            {
-                lstBullet.Remove(bullet);
-            }
-
-        }
-
-        public static CH106_01_BeamBullet GetBulletFromList(BeamBullet bullet)
-        {
-            CH106_01_BeamBullet result = new CH106_01_BeamBullet();
-            foreach (CH106_01_BeamBullet item in lstBullet)
-            {
-
-                if (bullet.BulletData.s_MODEL.Equals(item.BulletData.s_MODEL))
-                {
-                    result = item;
-                    break;
-                }
-            }
-            return result;
         }
         #endregion
 
         #region Register Class
         private static void RegisterClass(Type controllerType, Type[] interfaces = null)
         {
-            if (!ClassInjector.IsTypeRegisteredInIl2Cpp(controllerType))
+            try
             {
-                Plugin.Log.LogWarning($"Registering Beam Class: {controllerType.FullName}");
-
-                interfaces ??= Array.Empty<Type>();
-                if (typeof(ITangerineLogicUpdate).IsAssignableFrom(controllerType)
-                    && !interfaces.Contains(typeof(ILogicUpdate)))
+                if (!ClassInjector.IsTypeRegisteredInIl2Cpp(controllerType))
                 {
-                    // Add ILogicUpdate to list of interfaces
-                    interfaces = interfaces.AddToArray(typeof(ILogicUpdate));
+                    interfaces ??= Array.Empty<Type>();
+                    if (typeof(ITangerineLogicUpdate).IsAssignableFrom(controllerType) && !interfaces.Contains(typeof(ILogicUpdate)))
+                    {
+                        // Add ILogicUpdate to list of interfaces
+                        interfaces = interfaces.AddToArray(typeof(ILogicUpdate));
+                    }
+
+                    var options = new RegisterTypeOptions()
+                    {
+                        Interfaces = new Il2CppInterfaceCollection(interfaces),
+                    };
+                    ClassInjector.RegisterTypeInIl2Cpp(controllerType, options);
                 }
-
-                var options = new RegisterTypeOptions()
-                {
-                    Interfaces = new Il2CppInterfaceCollection(interfaces),
-                };
-
-                ClassInjector.RegisterTypeInIl2Cpp(controllerType, options);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError(ex);
             }
         }
 
-        [HarmonyPatch(typeof(OrangeConst), nameof(OrangeConst.ConstInit))]
-        [HarmonyPostfix]
+        [HarmonyPostfix, HarmonyPatch(typeof(OrangeConst), nameof(OrangeConst.ConstInit))]
         private static void OrangeConstInitPostfix()
         {
-            RegisterClass(typeof(CH106_01_BeamBullet));
+            RegisterClass(typeof(ValstraLaser_BeamBullet));
         }
         #endregion
     }

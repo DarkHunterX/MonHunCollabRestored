@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>MonHunCollabRestored</AssemblyName>
     <Product>MonHunCollabRestored</Product>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -14,6 +14,12 @@
     </RestoreAdditionalProjectSources>
     <RootNamespace>MonHunCollabRestored</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BeambulletEx\**" />
+    <EmbeddedResource Remove="BeambulletEx\**" />
+    <None Remove="BeambulletEx\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- This is disabled to allow using assemblies from the game's folder, as we are probably not going to be using the latest master
@@ -377,9 +383,5 @@
     <Reference Include="LibCpp2IL">
       <HintPath>$(mmxd_game_path)\BepInEx\core\LibCpp2IL.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="BeambulletEx\" />
   </ItemGroup>
 </Project>

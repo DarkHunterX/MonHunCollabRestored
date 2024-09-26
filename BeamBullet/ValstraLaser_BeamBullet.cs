@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 using Tangerine.Patchers.LogicUpdate;
 using UnityEngine;
 
-namespace MonHunCollabRestored.Beambullet
+namespace MonHunCollabRestored
 {
-    public class CH106_01_BeamBullet : BeamBullet, ITangerineLogicUpdate
+    public class ValstraLaser_BeamBullet : MonoBehaviour, ITangerineLogicUpdate
     {
         #region Basic Setup (Il2Cpp)
-        public CH106_01_BeamBullet(IntPtr ptr) : base(ptr) { }
+        public ValstraLaser_BeamBullet(IntPtr ptr) : base(ptr) { }
 
-        public CH106_01_BeamBullet() : base(ClassInjector.DerivedConstructorPointer<CH106_01_BeamBullet>())
+        public ValstraLaser_BeamBullet() : base(ClassInjector.DerivedConstructorPointer<ValstraLaser_BeamBullet>())
         {
             ClassInjector.DerivedConstructorBody(this);
         }
@@ -58,7 +58,8 @@ namespace MonHunCollabRestored.Beambullet
 
             GetBulletInfo();
             _beamBullet.CoroutineMove = _beamBullet.StartCoroutine(CH106_BeamBullet_StartMove());
-            
+
+
         }
 
         public IEnumerator CH106_BeamBullet_StartMove()
@@ -76,6 +77,9 @@ namespace MonHunCollabRestored.Beambullet
                 _pOwner = _beamBullet.refPBMShoter.SOB.GetComponent<CH106_Controller>();
             }
 
+            //Plugin.Log.LogInfo($"Is SubBeam: {_beamBullet.isSubBullet} - bStartTurn {bStartTurn} - Owner Exist? {_pOwner != null} - Destroyed? {_beamBullet.IsDestroy}");
+            //if (_beamBullet.isSubBullet)
+                //Plugin.Log.LogInfo("============================");
             while (!_beamBullet.IsDestroy)
             {
                 if (_beamBullet._clearTimer.GetMillisecond() >= _beamBullet._hurtCycle)
@@ -86,18 +90,32 @@ namespace MonHunCollabRestored.Beambullet
                 }
 
                 if (!bStartTurn && _beamBullet.isSubBullet)
+                {
                     DirectonTurn();
+                }
+                    
                                
                 if (_beamBullet._duration != -1L && _beamBullet._durationTimer.GetMillisecond() >= _beamBullet._duration && !bGamePause)
                 {
                     _beamBullet.IsDestroy = true;
-                    if(_beamBullet.isSubBullet == false)
+                    if (_beamBullet.isSubBullet == false)
                     {
+
                         bool flag = true;
-                        flag = _pOwner != null ? _pOwner.BeamStartTurn() : false;
+                        bool turn = _pOwner.BeamStartTurn();
+                        flag = _pOwner != null ? turn : false;
                         
                         if (flag == true)
+                        {
                             CreateSubBeam();
+                        }
+                        else
+                        {
+                            OrangeCharacter.MainStatus mainStatus = _pOwner._refEntity.CurMainStatus;
+                            OrangeCharacter.SubStatus curSubStatus = _pOwner._refEntity.CurSubStatus;
+
+                        }
+
                     }
                     //if (!)
                     //{
@@ -218,19 +236,21 @@ namespace MonHunCollabRestored.Beambullet
             if (this.secortCollider == null)
                 return;
             
-                BoxCollider2D boxCollider2D = this._hitCollider.Cast<BoxCollider2D>();
+                BoxCollider2D boxCollider2D = _beamBullet._hitCollider.Cast<BoxCollider2D>();
                 if (boxCollider2D == null)
                     return;
                 
-            this.secortCollider.Active(this, boxCollider2D.size.x);
+            this.secortCollider.Active(_beamBullet, boxCollider2D.size.x);
         }
 
         public void CreateSubBeam()
         {
             int n_LINK_SKILL = _beamBullet.BulletData.n_LINK_SKILL;
+            //Plugin.Log.LogInfo($"Bullet ID: {_beamBullet.BulletData.n_ID}");
             if (n_LINK_SKILL == 0)
                 return;
-            SKILL_TABLE skill_TABLE = ManagedSingleton<OrangeDataManager>.Instance.SKILL_TABLE_DICT[n_LINK_SKILL].GetSkillTableByValue();
+            //Plugin.Log.LogInfo("Create SubBeam");
+           SKILL_TABLE skill_TABLE = ManagedSingleton<OrangeDataManager>.Instance.SKILL_TABLE_DICT[n_LINK_SKILL].GetSkillTableByValue();
             if (_beamBullet.refPBMShoter.SOB.Cast<OrangeCharacter>() != null)
             {
                 (_beamBullet.refPBMShoter.SOB.Cast<OrangeCharacter>()).tRefPassiveskill.ReCalcuSkill(ref skill_TABLE);
@@ -317,6 +337,8 @@ namespace MonHunCollabRestored.Beambullet
                     case "lightning00_black": fxLightning00_Black = component.gameObject.GetComponent<LineRenderer>(); break;
                 }
             }
+
+            ManagedSingleton<OrangeDataManager>.Instance.SKILL_TABLE_DICT.TryGetNewValue(_beamBullet.BulletData.n_ID, out BulletData);
         }
 
         public void BulletPause(bool pause)
@@ -357,9 +379,11 @@ namespace MonHunCollabRestored.Beambullet
             fxLL002A = null;
             fxLightning00 = null;
             fxLightning00_Black = null;
+            //IsActived = false;
         }
 
         public BeamBullet _beamBullet;
+        public SKILL_TABLE BulletData;
 
         protected float defLength = 8f;
         private LineRenderer fxLine01;
