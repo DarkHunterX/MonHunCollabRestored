@@ -1,13 +1,13 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using MonHunCollabRestored.Character;
 using System;
 using System.Collections;
-using UnityEngine;
-using MonHunCollabRestored.Character;
 using Tangerine.Patchers.LogicUpdate;
+using UnityEngine;
 
-namespace MonHunCollabRestored.Beambullet
+namespace MonHunCollabRestored
 {
     public class ValstraLaser_BeamBullet : MonoBehaviour, ITangerineLogicUpdate
     {
@@ -53,6 +53,8 @@ namespace MonHunCollabRestored.Beambullet
 
             GetBulletInfo();
             _beamBullet.CoroutineMove = _beamBullet.StartCoroutine(CH106_BeamBullet_StartMove());
+
+
         }
 
         public IEnumerator CH106_BeamBullet_StartMove()
@@ -328,6 +330,7 @@ namespace MonHunCollabRestored.Beambullet
                     case "ll_002 (1)": fxLL002A = component.gameObject.GetComponent<ParticleSystem>(); break;
                     case "lightning00": fxLightning00 = component.gameObject.GetComponent<LineRenderer>(); break;
                     case "lightning00_black": fxLightning00_Black = component.gameObject.GetComponent<LineRenderer>(); break;
+                    case "ExtraCollider": secortCollider = component.gameObject.GetComponent<CH048_BeamSectorCollider>(); break;
                 }
             }
 
@@ -372,6 +375,7 @@ namespace MonHunCollabRestored.Beambullet
             fxLL002A = null;
             fxLightning00 = null;
             fxLightning00_Black = null;
+            secortCollider = null;
             //IsActived = false;
         }
 

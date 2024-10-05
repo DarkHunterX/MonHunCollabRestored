@@ -195,7 +195,7 @@ namespace MonHunCollabRestored.Character
             {
                 OrangeCharacter.SubStatus curSubStatus = this._refEntity.CurSubStatus;
                 UpdateSkillData();
-                Plugin.Log.LogInfo($"Online Style: {_IsOnlineMovement} - Speed: {SKL_0_DASHSPEED}");
+                //Plugin.Log.LogInfo($"Online Style: {_IsOnlineMovement} - Speed: {SKL_0_DASHSPEED}");
                 if (_IsOnlineMovement)
                 {
                     switch (curSubStatus)
