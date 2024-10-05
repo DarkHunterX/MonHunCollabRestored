@@ -29,7 +29,7 @@ namespace MonHunCollabRestored.Beambullet
                 if (this.secortCollider == null)
                     return;
 
-                float z = base.transform.localEulerAngles.z;
+                float z = _beamBullet.transform.localEulerAngles.z;
                 if (this.nShootDirection == 1)
                 {
                     this.secortCollider.UpdateAngle(this.oldAngle, z);
@@ -53,8 +53,6 @@ namespace MonHunCollabRestored.Beambullet
 
             GetBulletInfo();
             _beamBullet.CoroutineMove = _beamBullet.StartCoroutine(CH106_BeamBullet_StartMove());
-
-
         }
 
         public IEnumerator CH106_BeamBullet_StartMove()
@@ -72,9 +70,6 @@ namespace MonHunCollabRestored.Beambullet
                 _pOwner = _beamBullet.refPBMShoter.SOB.GetComponent<CH106_Controller>();
             }
 
-            //Plugin.Log.LogInfo($"Is SubBeam: {_beamBullet.isSubBullet} - bStartTurn {bStartTurn} - Owner Exist? {_pOwner != null} - Destroyed? {_beamBullet.IsDestroy}");
-            //if (_beamBullet.isSubBullet)
-                //Plugin.Log.LogInfo("============================");
             while (!_beamBullet.IsDestroy)
             {
                 if (_beamBullet._clearTimer.GetMillisecond() >= _beamBullet._hurtCycle)
@@ -108,32 +103,8 @@ namespace MonHunCollabRestored.Beambullet
                         {
                             OrangeCharacter.MainStatus mainStatus = _pOwner._refEntity.CurMainStatus;
                             OrangeCharacter.SubStatus curSubStatus = _pOwner._refEntity.CurSubStatus;
-
                         }
-
                     }
-                    //if (!)
-                    //{
-                    //    bool flag = true;
-                    //    if (_pOwner != null)
-                    //    {
-                    //        flag = _pOwner.BeamStartTurn();
-                    //    }
-                    //    if (flag)
-                    //    {
-                    //        Plugin.Log.LogInfo("Create Sub Beam");
-                    //        CH106_01_BeamBullet ch106_BeamBullet = CreateSubBeam();
-                    //        if (ch106_BeamBullet)
-                    //        {
-                    //            Plugin.Log.LogInfo("Sub Beam Rotated");
-                    //            ch106_BeamBullet.DirectonTurn();
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    Plugin.Log.LogInfo("Beam is SubBullet");
-                    //}
                 }
 
                 if (_beamBullet.AlwaysFaceCamera)
