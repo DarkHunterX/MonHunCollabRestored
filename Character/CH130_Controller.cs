@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using CallbackDefs;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Tangerine.Patchers.LogicUpdate;
@@ -454,7 +455,7 @@ namespace MonHunCollabRestored.Character
 
         public override void ControlCharacterContinue()
         {
-            base.StartCoroutine((Il2CppSystem.Collections.IEnumerator)this.OnToggleRegularEffect(true, 0.6f));
+            base.StartCoroutine(this.OnToggleRegularEffect(true, 0.6f).WrapToIl2Cpp());
         }
 
         private void TeleportOutCharacterDepend()
@@ -472,19 +473,19 @@ namespace MonHunCollabRestored.Character
         protected void StageTeleportInCharacterDepend()
         {
             this.ToggleRegularEffect(false);
-            base.StartCoroutine((Il2CppSystem.Collections.IEnumerator)this.OnToggleRegularEffect(true, 0.6f));
+            base.StartCoroutine(this.OnToggleRegularEffect(true, 0.6f).WrapToIl2Cpp());
         }
 
         protected void StageTeleportOutCharacterDepend()
         {
             if (this._refEntity.CurMainStatus != OrangeCharacter.MainStatus.TELEPORT_OUT)
             {
-                base.StartCoroutine((Il2CppSystem.Collections.IEnumerator)this.OnToggleRegularEffect(false, 0.2f));
+                base.StartCoroutine(this.OnToggleRegularEffect(true, 0.2f).WrapToIl2Cpp());
                 return;
             }
             if (!this._refEntity.Animator.IsDefaultAnimator)
             {
-                base.StartCoroutine((Il2CppSystem.Collections.IEnumerator)this.OnToggleRegularEffect(false, 0.2f));
+                base.StartCoroutine(this.OnToggleRegularEffect(true, 0.2f).WrapToIl2Cpp());
             }
         }
 

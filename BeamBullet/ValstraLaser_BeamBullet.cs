@@ -1,16 +1,11 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
-using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using MonHunCollabRestored.Character;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tangerine.Patchers.LogicUpdate;
 using UnityEngine;
+using MonHunCollabRestored.Character;
+using Tangerine.Patchers.LogicUpdate;
 
 namespace MonHunCollabRestored.Beambullet
 {
@@ -58,8 +53,6 @@ namespace MonHunCollabRestored.Beambullet
 
             GetBulletInfo();
             _beamBullet.CoroutineMove = _beamBullet.StartCoroutine(CH106_BeamBullet_StartMove());
-
-
         }
 
         public IEnumerator CH106_BeamBullet_StartMove()

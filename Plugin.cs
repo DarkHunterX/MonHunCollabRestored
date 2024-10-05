@@ -4,6 +4,7 @@ using HarmonyLib;
 using MonHunCollabRestored.Character;
 using MonHunCollabRestored.Beambullet;
 using Tangerine.Manager.Mod;
+using BepInEx.Configuration;
 
 namespace MonHunCollabRestored;
 
@@ -15,18 +16,29 @@ public class Plugin : TangerinePlugin
     private static Harmony _harmony;
     internal static new ManualLogSource Log;
 
+    internal static new ConfigFile Config;
+    internal static ConfigEntry<bool> CH093_OnlineTTSMovement { get; set; }
+
     public override void Load(TangerineMod tangerine)
     {
         _tangerine = tangerine;
 
         // Plugin startup logic
         Plugin.Log = base.Log;
+        Plugin.Config = base.Config;
         Log.LogInfo($"Tangerine plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 
         _harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         BeamBullet_Hooks.InitializeHarmony(_harmony);
+
+        InitializeConfig();
         RestoreCharacters();
         
+    }
+
+    private void InitializeConfig()
+    {
+        CH093_OnlineTTSMovement = Config.Bind("Rathalos Armor X", "Online Movement", true, new ConfigDescription("Restore True Charge Slash to original Online movement"));
     }
 
     private void RestoreCharacters()

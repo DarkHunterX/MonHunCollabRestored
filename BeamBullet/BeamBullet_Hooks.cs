@@ -9,8 +9,7 @@ namespace MonHunCollabRestored.Beambullet
 {
     public class BeamBullet_Hooks
     {
-        public static Dictionary<string, Il2CppSystem.Object> lstBullet = new Dictionary<string, Il2CppSystem.Object>();
-        private static bool bNeedClean = false;
+        public static Dictionary<string, Il2CppSystem.Object> lstBullet = new();
 
         internal static void InitializeHarmony(Harmony harmony)
         {
